@@ -145,3 +145,233 @@ function addNavItem(text, href) {
 }
 addNavItem("Blog", "/blog");
 addNavItem("Portfolio", "/portfolio");
+
+// ===== Task 10.1: Event Listeners =====
+
+// --- Basic events ---
+const clickButton = document.createElement("button");
+clickButton.textContent = "Click Me";
+document.body.appendChild(clickButton);
+
+clickButton.addEventListener("click", function () {
+    console.log("Button clicked!");
+});
+
+clickButton.addEventListener("click", () => {
+    console.log("Clicked again!");
+});
+
+function handleClick() {
+    console.log("Handled!");
+}
+clickButton.addEventListener("click", handleClick);
+// Uncomment to test removal (only logs first two clicks):
+// clickButton.removeEventListener("click", handleClick);
+
+// --- Build: Click Counter ---
+function buildCounter() {
+    const wrapper = document.createElement("div");
+    wrapper.style.margin = "20px 0";
+
+    const display = document.createElement("span");
+    display.textContent = "0";
+    display.style.margin = "0 10px";
+    display.style.fontWeight = "bold";
+
+    const plus = document.createElement("button");
+    plus.textContent = "+";
+
+    const minus = document.createElement("button");
+    minus.textContent = "-";
+
+    const reset = document.createElement("button");
+    reset.textContent = "Reset";
+
+    let count = 0;
+
+    plus.addEventListener("click", () => {
+        count++;
+        display.textContent = count;
+    });
+    minus.addEventListener("click", () => {
+        if (count > 0) count--;
+        display.textContent = count;
+    });
+    reset.addEventListener("click", () => {
+        count = 0;
+        display.textContent = count;
+    });
+
+    wrapper.append(minus, display, plus, reset);
+    document.body.appendChild(wrapper);
+}
+buildCounter();
+
+// ===== Task 10.2: The Event Object =====
+
+// Ctrl+S → "Saved!" alert (prevent save dialog)
+document.addEventListener("keydown", function (event) {
+    if (event.ctrlKey && event.key === "s") {
+        event.preventDefault();
+        alert("Saved!");
+    }
+
+    // Ctrl+Enter → submit form
+    if (event.ctrlKey && event.key === "Enter") {
+        const form = document.getElementById("contact-form");
+        if (form) form.requestSubmit(); // triggers submit event
+    }
+
+    // Escape → clear all form inputs
+    if (event.key === "Escape") {
+        document.querySelectorAll("input").forEach((input) => {
+            input.value = "";
+        });
+    }
+});
+
+// ===== Task 10.3: Bubbling & Delegation =====
+
+// --- Exercise 1: Bubbling demo (console only) ---
+// Add this HTML to dom-practice.html:
+//   <div id="grandparent">Grandparent
+//     <div id="parent">Parent
+//       <div id="child">Child</div>
+ //   </div>
+//    </div>
+["grandparent", "parent", "child"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.padding = "20px";
+    el.style.border = "1px solid #999";
+    el.style.margin = "4px";
+    el.addEventListener("click", () => console.log(`${id} clicked`));
+});
+// Click "Child" → logs: child → parent → grandparent
+
+// --- Exercise 2: Delegation ---
+function buildDelegatedTaskList() {
+    const list = document.createElement("ul");
+    list.id = "delegated-list";
+    list.innerHTML = `
+        <li>Task one <button class="delete">✕</button></li>
+        <li>Task two <button class="delete">✕</button></li>
+    `;
+    document.body.appendChild(list);
+
+    // ONE listener on the parent
+    list.addEventListener("click", function (event) {
+        const li = event.target.closest("li");
+        if (!li) return; // clicked the gap
+
+        if (event.target.classList.contains("delete")) {
+            li.remove();
+            return;
+        }
+        li.classList.toggle("completed");
+    });
+}
+buildDelegatedTaskList();
+
+// ===== Task 10.4: Form Handling =====
+const Form = document.getElementById("contact-form");
+const nameInput = document.getElementById("name");
+ emailInput = document.getElementById("email");
+
+// --- error helpers (stable via id, not sibling position) ---
+
+function showError(input, message) {
+    input.classList.add("error");
+    input.style.borderColor = "red";
+
+    const errId = input.id + "-error";
+    let err = document.getElementById(errId);
+
+    if (!err) {
+        err = document.createElement("small");
+        err.id = errId;
+        err.className = "error-msg";
+        err.style.color = "red";
+        err.style.display = "block";
+        // insert right after the input, once
+        input.insertAdjacentElement("afterend", err);
+    }
+
+    err.textContent = message;
+}
+
+function clearError(input) {
+    input.classList.remove("error");
+    input.style.borderColor = "";
+
+    const err = document.getElementById(input.id + "-error");
+    if (err) err.remove();
+}
+
+// --- real-time validation ---
+
+nameInput.addEventListener("input", (e) => {
+    const value = e.target.value;
+
+    if (value.length === 0) {
+        clearError(nameInput);          // don't nag while empty
+    } else if (value.length < 2) {
+        showError(nameInput, "Name must be at least 2 characters");
+    } else {
+        clearError(nameInput);
+    }
+});
+
+emailInput.addEventListener("input", (e) => {
+    const value = e.target.value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (value.length === 0) {
+        clearError(emailInput);
+    } else if (!emailRegex.test(value)) {
+        showError(emailInput, "Please enter a valid email");
+    } else {
+        clearError(emailInput);
+    }
+});
+
+// --- submission ---
+
+form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    console.log("Form data:", data);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // validate everything on submit, not just on input
+    let valid = true;
+
+    if (!data.name || data.name.trim().length < 2) {
+        showError(nameInput, "Name must be at least 2 characters");
+        valid = false;
+    } else {
+        clearError(nameInput);
+    }
+
+    if (!data.email || !emailRegex.test(data.email)) {
+        showError(emailInput, "Please enter a valid email");
+        valid = false;
+    } else {
+        clearError(emailInput);
+    }
+
+    if (!valid) {
+        alert("Please fix the errors before submitting.");
+        return;
+    }
+
+    alert("Form submitted successfully!");
+
+    // reset values AND clear any lingering messages
+    form.reset();
+    clearError(nameInput);
+    clearError(emailInput);
+});
