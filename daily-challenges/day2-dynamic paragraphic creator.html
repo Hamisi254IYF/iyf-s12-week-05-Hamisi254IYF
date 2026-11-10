@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><head><title>Day 2</title></head><body>
+<button id="add">Add Paragraph</button>
+<div id="list"></div>
+<script>
+let n = 0;
+document.getElementById("add").addEventListener("click", () => {
+    n++;
+    const p = document.createElement("p");
+    p.textContent = `Paragraph #${n} `;
+    const del = document.createElement("button");
+    del.textContent = "Delete";
+    del.addEventListener("click", () => p.remove());
+    p.appendChild(del);
+    document.getElementById("list").appendChild(p);
+});
+</script></body></html>
