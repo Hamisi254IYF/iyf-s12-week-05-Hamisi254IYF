@@ -1,0 +1,13 @@
+<!DOCTYPE html><html><head><title>Day 4</title></head><body>
+<div id="source" style="border:1px solid;padding:10px;margin:8px 0;">
+  <p>This is <strong>source</strong> content.</p>
+</div>
+<div id="target" style="border:1px dashed;padding:10px;min-height:40px;margin:8px 0;"></div>
+<button id="copy">Copy Source → Target</button>
+<script>
+document.getElementById("copy").addEventListener("click", () => {
+    const source = document.getElementById("source");
+    const target = document.getElementById("target");
+    target.innerHTML = source.innerHTML;
+});
+</script></body></html>
